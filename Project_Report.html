@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Report — Enterprise Double-Entry Financial Ledger System</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap');
+
+    :root {
+      --primary: #4f46e5;
+      --primary-light: #e0e7ff;
+      --accent: #10b981;
+      --danger: #ef4444;
+      --dark: #1e293b;
+      --text: #334155;
+      --text-light: #64748b;
+      --bg: #ffffff;
+      --border: #e2e8f0;
+      --code-bg: #f8fafc;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
+      line-height: 1.75;
+      font-size: 11.5pt;
+      background: var(--bg);
+    }
+
+    @page {
+      size: A4;
+      margin: 20mm 18mm 20mm 18mm;
+    }
+
+    @media print {
+      body { font-size: 10.5pt; }
+      .page-break { page-break-before: always; }
+      .no-break { page-break-inside: avoid; }
+      .cover-page { page-break-after: always; }
+    }
+
+    .container {
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ─── Cover Page ─── */
+    .cover-page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 60px 40px;
+      background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 50%, #dbeafe 100%);
+      border-bottom: 6px solid var(--primary);
+    }
+
+    .cover-logo {
+      width: 90px;
+      height: 90px;
+      background: var(--primary);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 30px;
+      box-shadow: 0 20px 40px rgba(79, 70, 229, 0.25);
+    }
+
+    .cover-logo svg { width: 48px; height: 48px; fill: white; }
+
+    .cover-title {
+      font-size: 32pt;
+      font-weight: 800;
+      color: var(--dark);
+      line-height: 1.2;
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+
+    .cover-subtitle {
+      font-size: 16pt;
+      font-weight: 400;
+      color: var(--primary);
+      margin-bottom: 50px;
+    }
+
+    .cover-meta {
+      font-size: 11pt;
+      color: var(--text-light);
+      line-height: 2;
+    }
+
+    .cover-meta strong { color: var(--dark); font-weight: 600; }
+
+    .cover-line {
+      width: 60px;
+      height: 4px;
+      background: var(--primary);
+      border-radius: 2px;
+      margin: 30px auto;
+    }
+
+    /* ─── Section Headers ─── */
+    h1 {
+      font-size: 22pt;
+      font-weight: 800;
+      color: var(--dark);
+      border-bottom: 3px solid var(--primary);
+      padding-bottom: 10px;
+      margin: 40px 0 20px;
+      letter-spacing: -0.01em;
+    }
+
+    h2 {
+      font-size: 15pt;
+      font-weight: 700;
+      color: var(--dark);
+      margin: 28px 0 12px;
+      padding-left: 14px;
+      border-left: 4px solid var(--primary);
+    }
+
+    h3 {
+      font-size: 12pt;
+      font-weight: 600;
+      color: var(--text);
+      margin: 18px 0 8px;
+    }
+
+    p { margin-bottom: 10px; }
+    ul, ol { margin: 8px 0 14px 24px; }
+    li { margin-bottom: 5px; }
+
+    /* ─── Tables ─── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 20px;
+      font-size: 10pt;
+    }
+
+    th {
+      background: var(--primary);
+      color: white;
+      font-weight: 600;
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 9.5pt;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    td {
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tr:nth-child(even) { background: #f8fafc; }
+    tr:hover { background: var(--primary-light); }
+
+    /* ─── Code Blocks ─── */
+    code {
+      font-family: 'Fira Code', monospace;
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 9.5pt;
+      color: var(--primary);
+      border: 1px solid var(--border);
+    }
+
+    pre {
+      background: var(--dark);
+      color: #e2e8f0;
+      padding: 16px 20px;
+      border-radius: 10px;
+      overflow-x: auto;
+      margin: 12px 0 18px;
+      font-family: 'Fira Code', monospace;
+      font-size: 9pt;
+      line-height: 1.6;
+    }
+
+    pre code {
+      background: none;
+      border: none;
+      color: inherit;
+      padding: 0;
+    }
+
+    /* ─── Info Boxes ─── */
+    .info-box {
+      background: #eff6ff;
+      border-left: 4px solid #3b82f6;
+      padding: 12px 16px;
+      border-radius: 0 8px 8px 0;
+      margin: 14px 0;
+      font-size: 10pt;
+    }
+
+    .success-box {
+      background: #ecfdf5;
+      border-left: 4px solid var(--accent);
+      padding: 12px 16px;
+      border-radius: 0 8px 8px 0;
+      margin: 14px 0;
+      font-size: 10pt;
+    }
+
+    /* ─── Architecture Diagram Box ─── */
+    .arch-diagram {
+      background: #f8fafc;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      text-align: center;
+      font-family: 'Fira Code', monospace;
+      font-size: 9.5pt;
+      line-height: 1.8;
+      color: var(--dark);
+    }
+
+    .arch-diagram .layer {
+      background: var(--primary-light);
+      border: 1px solid #c7d2fe;
+      border-radius: 8px;
+      padding: 10px 20px;
+      margin: 8px auto;
+      max-width: 420px;
+      font-weight: 600;
+    }
+
+    .arch-diagram .arrow {
+      color: var(--primary);
+      font-size: 16pt;
+      margin: 2px 0;
+    }
+
+    /* ─── GL Code Table ─── */
+    .gl-table td:first-child {
+      font-family: 'Fira Code', monospace;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    /* ─── Badge ─── */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 50px;
+      font-size: 8.5pt;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .badge-success { background: #dcfce7; color: #166534; }
+    .badge-primary { background: var(--primary-light); color: var(--primary); }
+    .badge-warning { background: #fef3c7; color: #92400e; }
+
+    /* ─── Footer ─── */
+    .report-footer {
+      text-align: center;
+      color: var(--text-light);
+      font-size: 9pt;
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+      margin-top: 40px;
+    }
+
+    /* ─── TOC ─── */
+    .toc-list {
+      list-style: none;
+      padding: 0;
+      margin: 20px 0;
+    }
+    .toc-list li {
+      padding: 8px 0;
+      border-bottom: 1px dotted var(--border);
+      display: flex;
+      justify-content: space-between;
+    }
+    .toc-list li span:first-child { font-weight: 500; }
+    .toc-list li span:last-child { color: var(--text-light); font-size: 10pt; }
+    .toc-section {
+      font-weight: 700;
+      color: var(--primary);
+      margin-top: 12px;
+      border-bottom: 2px solid var(--primary-light) !important;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═════════════════════════ COVER PAGE ═════════════════════════ -->
+  <div class="cover-page">
+    <div class="cover-logo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    </div>
+    <div class="cover-title">Enterprise Double-Entry<br>Financial Ledger System</div>
+    <div class="cover-subtitle">Full-Stack Project Report</div>
+    <div class="cover-line"></div>
+    <div class="cover-meta">
+      <strong>Technology Stack:</strong> Spring Boot 3.3 · PostgreSQL · React (Vite) · Java 17<br>
+      <strong>Architecture:</strong> Three-Tier MVC with ACID-Compliant Double-Entry Bookkeeping<br>
+      <strong>Date:</strong> June 2026<br>
+      <strong>Currency:</strong> Indian Rupees (₹ INR)<br>
+      <strong>Financial Year:</strong> April 1 – March 31 (Indian Standard)
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- ═════════════════════════ TABLE OF CONTENTS ═════════════════════════ -->
+    <h1>Table of Contents</h1>
+    <ul class="toc-list">
+      <li class="toc-section"><span>Section</span><span>Page</span></li>
+      <li><span>1. Introduction &amp; Objective</span></li>
+      <li><span>2. System Architecture</span></li>
+      <li><span>3. Technology Stack</span></li>
+      <li><span>4. Database Design (ER Model &amp; GL Codes)</span></li>
+      <li><span>5. Backend Implementation</span></li>
+      <li><span>6. Frontend Implementation</span></li>
+      <li><span>7. Key Features</span></li>
+      <li><span>8. API Endpoints Reference</span></li>
+      <li><span>9. Deployment &amp; Execution Instructions</span></li>
+      <li><span>10. Testing &amp; Validation Results</span></li>
+      <li><span>11. Conclusion &amp; Future Scope</span></li>
+    </ul>
+
+    <!-- ═════════════════════════ 1. INTRODUCTION ═════════════════════════ -->
+    <div class="page-break"></div>
+    <h1>1. Introduction &amp; Objective</h1>
+
+    <h2>1.1 Problem Statement</h2>
+    <p>
+      Small and medium enterprises in India often rely on manual bookkeeping or spreadsheet-based 
+      systems for financial record keeping. These approaches are error-prone, lack audit trails, 
+      and do not enforce the fundamental accounting equation: <strong>Assets = Liabilities + Equity</strong>.
+    </p>
+
+    <h2>1.2 Objective</h2>
+    <p>
+      The objective of this project is to design and implement a <strong>fully functional, enterprise-grade 
+      Double-Entry Financial Ledger System</strong> that:
+    </p>
+    <ul>
+      <li>Enforces the double-entry bookkeeping principle where every transaction must have equal debits and credits.</li>
+      <li>Maintains <strong>ACID-compliant</strong> transactional integrity using PostgreSQL.</li>
+      <li>Produces standard financial reports: <strong>Trial Balance</strong>, <strong>Profit &amp; Loss Statement</strong>, and <strong>Balance Sheet</strong>.</li>
+      <li>Uses <strong>General Ledger (GL) Code nomenclature</strong> for professional chart-of-accounts identification.</li>
+      <li>Supports the <strong>Indian Financial Year</strong> (April 1 – March 31) with automatic date validation.</li>
+      <li>Adheres to <strong>IAS 8 / Ind AS 8</strong> accounting immutability standards (no modification or deletion of posted entries).</li>
+      <li>Provides a modern, responsive web interface with intelligent data-entry automation.</li>
+    </ul>
+
+    <h2>1.3 Scope</h2>
+    <p>The system covers the complete lifecycle of financial transaction processing:</p>
+    <ul>
+      <li>Account creation and management with GL codes</li>
+      <li>Transaction posting with real-time double-entry validation</li>
+      <li>Automated report generation (Trial Balance, P&amp;L, Balance Sheet)</li>
+      <li>Intelligent form auto-population with Quick Templates</li>
+      <li>Historical transaction cloning for repeating entries</li>
+      <li>Persistent PostgreSQL storage with automatic schema management</li>
+    </ul>
+
+    <!-- ═════════════════════════ 2. ARCHITECTURE ═════════════════════════ -->
+    <div class="page-break"></div>
+    <h1>2. System Architecture</h1>
+
+    <h2>2.1 Three-Tier Architecture</h2>
+    <p>The system follows a classic three-tier architecture separating presentation, business logic, and data persistence:</p>
+
+    <div class="arch-diagram">
+      <div class="layer" style="background:#dbeafe; border-color:#93c5fd;">🌐 <strong>Presentation Layer</strong> — React + Vite (Port 5173)</div>
+      <div class="arrow">↕ HTTP REST API (JSON)</div>
+      <div class="layer" style="background:#e0e7ff; border-color:#a5b4fc;">⚙️ <strong>Business Logic Layer</strong> — Spring Boot 3.3 (Port 8080)</div>
+      <div class="arrow">↕ JDBC / Hibernate ORM</div>
+      <div class="layer" style="background:#dcfce7; border-color:#86efac;">🗄️ <strong>Data Persistence Layer</strong> — PostgreSQL (Port 5432)</div>
+    </div>
+
+    <h2>2.2 Backend MVC Structure</h2>
+    <table>
+      <thead>
+        <tr><th>Layer</th><th>Package</th><th>Responsibility</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Controller</td><td><code>com.ledger.controller</code></td><td>REST endpoint routing, request/response handling, CORS</td></tr>
+        <tr><td>Service</td><td><code>com.ledger.service</code></td><td>Core business logic, validation, double-entry enforcement</td></tr>
+        <tr><td>Repository</td><td><code>com.ledger.repository</code></td><td>JPA data access interfaces extending Spring Data</td></tr>
+        <tr><td>Model</td><td><code>com.ledger.model</code></td><td>JPA entity definitions and report DTOs</td></tr>
+        <tr><td>Config</td><td><code>com.ledger.config</code></td><td>Database seeder and H2-to-PostgreSQL migrator</td></tr>
+      </tbody>
+    </table>
+
+    <!-- ═════════════════════════ 3. TECHNOLOGY STACK ═════════════════════════ -->
+    <div class="page-break"></div>
+    <h1>3. Technology Stack</h1>
+
+    <table>
+      <thead>
+        <tr><th>Component</th><th>Technology</th><th>Version</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Programming Language</td><td>Java</td><td>17 (LTS)</td></tr>
+        <tr><td>Backend Framework</td><td>Spring Boot</td><td>3.3.0</td></tr>
+        <tr><td>ORM</td><td>Hibernate / Spring Data JPA</td><td>6.5.2</td></tr>
+        <tr><td>Database</td><td>PostgreSQL</td><td>Latest Stable</td></tr>
+        <tr><td>Database Admin</td><td>pgAdmin 4</td><td>Latest</td></tr>
+        <tr><td>Build Tool</td><td>Apache Maven</td><td>3.9.6</td></tr>
+        <tr><td>Frontend Framework</td><td>React</td><td>18.x</td></tr>
+        <tr><td>Frontend Build</td><td>Vite</td><td>5.4.x</td></tr>
+        <tr><td>Frontend Language</td><td>JavaScript (JSX)</td><td>ES2022</td></tr>
+        <tr><td>Styling</td><td>Vanilla CSS (Custom Design System)</td><td>—</td></tr>
+        <tr><td>API Format</td><td>RESTful JSON</td><td>—</td></tr>
+        <tr><td>Web Server (Embedded)</td><td>Apache Tomcat</td><td>10.1.24</td></tr>
+        <tr><td>Operating System</td><td>Windows</td><td>10/11</td></tr>
+      </tbody>
+    </table>
+
+    <!-- ═════════════════════════ 4. DATABASE DESIGN ═════════════════════════ -->
+    <div class="page-break"></div>
+    <h1>4. Database Design</h1>
+
+    <h2>4.1 Entity-Relationship Model</h2>
+    <p>The database consists of three core tables following double-entry bookkeeping principles:</p>
+
+    <div class="info-box">
+      <strong>Relationship:</strong> One <code>Transaction</code> has many <code>JournalEntry</code> records (1:N). 
+      Each <code>JournalEntry</code> references exactly one <code>Account</code> (N:1).
+    </div>
+
+    <h3>Table: <code>accounts</code></h3>
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Constraint</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>BIGINT</td><td>PRIMARY KEY (manual)</td><td>GL Code identifier (e.g. 1000, 4000)</td></tr>
+        <tr><td><code>name</code></td><td>VARCHAR(255)</td><td>UNIQUE, NOT NULL</td><td>Account display name</td></tr>
+        <tr><td><code>type</code></td><td>VARCHAR(255)</td><td>NOT NULL</td><td>ASSET / LIABILITY / EQUITY / REVENUE / EXPENSE</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Table: <code>transactions</code></h3>
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Constraint</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>BIGINT</td><td>PRIMARY KEY (auto-gen)</td><td>Sequential transaction ID</td></tr>
+        <tr><td><code>description</code></td><td>VARCHAR(255)</td><td>NOT NULL</td><td>Transaction narration</td></tr>
+        <tr><td><code>timestamp</code></td><td>TIMESTAMP(6)</td><td>NOT NULL</td><td>Date &amp; time of the transaction</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Table: <code>journal_entries</code></h3>
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Constraint</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>BIGINT</td><td>PRIMARY KEY (auto-gen)</td><td>Journal entry line ID</td></tr>
+        <tr><td><code>account_id</code></td><td>BIGINT</td><td>FOREIGN KEY → accounts</td><td>References GL Code</td></tr>
+        <tr><td><code>transaction_id</code></td><td>BIGINT</td><td>FOREIGN KEY → transactions</td><td>Groups entries under a transaction</td></tr>
+        <tr><td><code>type</code></td><td>VARCHAR(255)</td><td>NOT NULL</td><td>DEBIT or CREDIT</td></tr>
+        <tr><td><code>amount</code></td><td>NUMERIC(19,4)</td><td>NOT NULL</td><td>Monetary amount with 4 decimal precision</td></tr>
+      </tbody>
+    </table>
+
+    <h2>4.2 General Ledger (GL) Code Chart of Accounts</h2>
+    <table class="gl-table">
+      <thead><tr><th>GL Code</th><th>Account Name</th><th>Account Type</th><th>Normal Balance</th></tr></thead>
+      <tbody>
+        <tr><td>1000</td><td>Cash</td><td>ASSET</td><td>Debit</td></tr>
+        <tr><td>1200</td><td>Accounts Receivable</td><td>ASSET</td><td>Debit</td></tr>
+        <tr><td>2000</td><td>Accounts Payable</td><td>LIABILITY</td><td>Credit</td></tr>
+        <tr><td>4000</td><td>Revenue</td><td>REVENUE</td><td>Credit</td></tr>
+        <tr><td>5000</td><td>Rent Expense</td><td>EXPENSE</td><td>Debit</td></tr>
+        <tr><td>5100</td><td>Utilities Expense</td><td>EXPENSE</td><td>Debit</td></tr>
+      </tbody>
+    </table>
+
+    <h2>4.3 Unified Ledger View</h2>
+    <p>A PostgreSQL <code>VIEW</code> named <code>full_ledger_view</code> joins all three tables for consolidated querying in pgAdmin:</p>
+    <pre><code>SELECT * FROM public.full_ledger_view;</code></pre>
+
+    <!-- ═════════════════════════ 5. BACKEND IMPLEMENTATION ═════════════════════════ -->
+    <div class="page-break"></div>
+    <h1>5. Backend Implementation</h1>
+
+    <h2>5.1 Source File Inventory</h2>
+    <table>
+      <thead><tr><th>Package</th><th>File</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>Root</td><td><code>LedgerApplication.java</code></td><td>Spring Boot entry point (<code>@SpringBootApplication</code>)</td></tr>
+        <tr><td>Model</td><td><code>Account.java</code></td><td>JPA entity for GL accounts with manual ID</td></tr>
+        <tr><td>Model</td><td><code>Transaction.java</code></td><td>JPA entity for financial transactions</td></tr>
+        <tr><td>Model</td><td><code>JournalEntry.java</code></td><td>JPA entity for debit/credit journal legs</td></tr>
+        <tr><td>Model</td><td><code>AccountBalance.java</code></td><td>DTO for running account balance computation</td></tr>
+        <tr><td>Model</td><td><code>AccountBalanceRow.java</code></td><td>DTO for trial balance row data</td></tr>
+        <tr><td>Model</td><td><code>TrialBalanceReport.java</code></td><td>DTO wrapping the complete trial balance</td></tr>
+        <tr><td>Model</td><td><code>ProfitAndLossReport.java</code></td><td>DTO for P&amp;L statement data</td></tr>
+        <tr><td>Model</td><td><code>BalanceSheetReport.java</code></td><td>DTO for balance sheet data</td></tr>
+        <tr><td>Repository</td><td><code>AccountRepository.java</code></td><td>JPA repository with <code>findByName()</code></td></tr>
+        <tr><td>Repository</td><td><code>TransactionRepository.java</code></td><td>JPA repository with pagination support</td></tr>
+        <tr><td>Repository</td><td><code>JournalEntryRepository.java</code></td><td>JPA repository for journal entries</td></tr>
+        <tr><td>Service</td><td><code>LedgerService.java</code></td><td>Core transaction creation, validation &amp; balance logic</td></tr>
+        <tr><td>Service</td><td><code>ReportService.java</code></td><td>Report generation (Trial Balance, P&amp;L, Balance Sheet)</td></tr>
+        <tr><td>Service</td><td><code>InvalidTransactionException.java</code></td><td>Custom exception for validation errors</td></tr>
+        <tr><td>Controller</td><td><code>LedgerController.java</code></td><td>REST API for transactions, accounts, balances</td></tr>
+        <tr><td>Controller</td><td><code>ReportController.java</code></td><td>REST API for financial report endpoints</td></tr>
+        <tr><td>Config</td><td><code>DataSeeder.java</code></td><td>Seeds default accounts with GL codes on first run</td></tr>
+        <tr><td>Config</td><td><code>DatabaseMigrator.java</code></td><td>Migrates data from H2 to PostgreSQL with GL mapping</td></tr>
+      </tbody>
+    </table>
+
+    <h2>5.2 Core Business Rules</h2>
+    <ol>
+      <li><strong>Double-Entry Enforcement:</strong> Every transaction must contain at least 2 journal entries. Total Debits must exactly equal Total Credits, verified to 2 decimal places.</li>
+      <li><strong>Financial Year Validation:</strong> The system dynamically computes the active Indian Financial Year (April 1 – March 31). Transactions outside this period are rejected with HTTP 400.</li>
+      <li><strong>Audit Immutability:</strong> Per IAS 8 / Ind AS 8 standards, no PUT, PATCH, or DELETE endpoints exist. Errors are corrected via reversing journal entries only.</li>
+      <li><strong>Amount Precision:</strong> All monetary amounts are stored as <code>NUMERIC(19,4)</code> and normalized to 2 decimal places with <code>HALF_UP</code> rounding.</li>
+    </ol>
+
+    <!-- ═════════════════════════ 6. FRONTEND IMPLEMENTATION ═════════════════════════ -->
+    <div class="page-break"></div>
+    <h1>6. Frontend Implementation</h1>
+
+    <h2>6.1 Component Architecture</h2>
+    <table>
+      <thead><tr><th>Component</th><th>File</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>App</td><td><code>App.jsx</code></td><td>Root component with tab navigation and state management</td></tr>
+        <tr><td>Transaction Form</td><td><code>TransactionForm.jsx</code></td><td>New transaction entry with templates, auto-detection, and live balance calculator</td></tr>
+        <tr><td>Ledger Table</td><td><code>LedgerTable.jsx</code></td><td>Paginated transaction log with search, filter, and clone buttons</td></tr>
+        <tr><td>Trial Balance HUD</td><td><code>TrialBalance.jsx</code></td><td>Always-visible account totals dashboard (Cash, Liabilities, Revenue, Expenses)</td></tr>
+        <tr><td>Trial Balance Sheet</td><td><code>TrialBalanceSheet.jsx</code></td><td>Formal two-column trial balance with verification badge</td></tr>
+        <tr><td>Financial Statements</td><td><code>FinancialStatements.jsx</code></td><td>P&amp;L Statement and Balance Sheet with verification</td></tr>
+      </tbody>
+    </table>
+
+    <h2>6.2 Design System</h2>
+    <p>The frontend uses a custom premium design system defined in <code>index.css</code> (1,200+ lines) featuring:</p>
+    <ul>
+      <li><strong>Dark Mode Theme:</strong> Deep navy backgrounds with glassmorphic panels</li>
+      <li><strong>Custom CSS Variables:</strong> 20+ design tokens for colors, typography, and spacing</li>
+      <li><strong>Typography:</strong> Outfit (headings) and Plus Jakarta Sans (body) from Google Fonts</li>
+      <li><strong>Micro-Animations:</strong> Fade-in transitions, hover effects, and interactive state changes</li>
+      <li><strong>Responsive Layout:</strong> CSS Grid with mobile breakpoints for all screen sizes</li>
+    </ul>
+
+    <h2>6.3 Tab Navigation</h2>
+    <table>
+      <thead><tr><th>Tab</th><th>Contents</th></tr></thead>
+      <tbody>
+        <tr><td>📄 Ledger Logs</td><td>Transaction table with search/filter + New Transaction form with Quick Templates</td></tr>
+        <tr><td>✅ Trial Balance</td><td>Formal two-column trial balance sheet with structural verification</td></tr>
+        <tr><td>💼 Financial Statements</td><td>Profit &amp; Loss Statement + Balance Sheet side-by-side</td></tr>
+      </tbody>
+    </table>
+
+    <!-- ═════════════════════════ 7. KEY FEATURES ═════════════════════════ -->
+    <div class="page-break"></div>
+    <h1>7. Key Features</h1>
+
+    <h2>7.1 Auto-Balance Entry</h2>
+    <p>When journal entry legs are unbalanced, clicking <strong>"🪄 Auto-Balance Entry"</strong> instantly appends a new row with the opposite type (DEBIT/CREDIT) and the exact difference amount pre-filled, along with a pre-selected balancing account.</p>
+
+    <h2>7.2 Real-Time Search &amp; Filter</h2>
+    <p>A search bar above the Transaction Ledger Logs table performs instant client-side filtering across narration description, account name, account type, and transaction ID without any network request.</p>
+
+    <h2>7.3 Strict Accounting Immutability</h2>
+    <p>In compliance with <strong>IAS 8 / Ind AS 8</strong>, no PUT, PATCH, or DELETE endpoints are exposed. All corrections must be made via reversing journal entries, maintaining a complete audit trail.</p>
+
+    <h2>7.4 Financial Year Date Constraint</h2>
+    <p>The system dynamically computes the active Indian Financial Year (April 1 – March 31). Transactions outside this range are rejected with a clear error message.</p>
+
+    <h2>7.5 Financial Reports</h2>
+    <ul>
+      <li><strong>Trial Balance:</strong> Two-column debit/credit layout with structural verification badge.</li>
+      <li><strong>Profit &amp; Loss:</strong> Revenue vs. Expense summary with Net Profit/Loss indicator.</li>
+      <li><strong>Balance Sheet:</strong> Assets vs. Liabilities+Equity with accounting equation verification.</li>
+    </ul>
+
+    <h2>7.6 Quick Templates &amp; Smart Auto-Detection</h2>
+    <p>One-click template buttons (🏢 Rent Invoice, 💸 Pay Rent, 🔌 Utility Bill, etc.) instantly fill the narration, select the correct debit/credit accounts, and auto-focus the amount field. Additionally, as the user types a narration, intelligent keyword detection automatically adjusts the account selectors in real time.</p>
+
+    <h2>7.7 Transaction Cloning</h2>
+    <p>A <strong>"Use Template"</strong> button next to each historical transaction in the ledger table clones the transaction's description, accounts, and debit/credit types into the form for quick repeating entries.</p>
+
+    <h2>7.8 GL Code Integration</h2>
+    <p>Accounts are identified by standard General Ledger codes (1000 for Cash, 2000 for Liabilities, 4000 for Revenue, etc.) rather than sequential database IDs, following professional accounting nomenclature.</p>
+
+    <h2>7.9 PostgreSQL Persistence</h2>
+    <p>All data is persisted in a production-grade PostgreSQL database with Hibernate ORM handling automatic schema management, foreign key constraints, and ACID transaction compliance.</p>
+
+    <!-- ═════════════════════════ 8. API REFERENCE ═════════════════════════ -->
+    <div class="page-break"></div>
+    <h1>8. API Endpoints Reference</h1>
+
+    <table>
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge badge-success">GET</span></td><td><code>/api/transactions?page=0&amp;size=10</code></td><td>Paginated list of transactions (desc by date)</td></tr>
+        <tr><td><span class="badge badge-primary">POST</span></td><td><code>/api/transactions</code></td><td>Create a new balanced transaction</td></tr>
+        <tr><td><span class="badge badge-success">GET</span></td><td><code>/api/accounts</code></td><td>List all accounts with GL codes</td></tr>
+        <tr><td><span class="badge badge-success">GET</span></td><td><code>/api/accounts/balances</code></td><td>Running balances for all accounts</td></tr>
+        <tr><td><span class="badge badge-success">GET</span></td><td><code>/api/reports/trial-balance</code></td><td>Trial Balance report</td></tr>
+        <tr><td><span class="badge badge-success">GET</span></td><td><code>/api/reports/profit-loss</code></td><td>Profit &amp; Loss statement</td></tr>
+        <tr><td><span class="badge badge-success">GET</span></td><td><code>/api/reports/balance-sheet</code></td><td>Balance Sheet report</td></tr>
+      </tbody>
+    </table>
+
+    <h2>8.1 Sample POST Request</h2>
+    <pre><code>POST /api/transactions
+Content-Type: application/json
+
+{
+  "description": "Monthly Office Rent Invoice",
+  "timestamp": "2026-06-15T12:00:00",
+  "entries": [
+    { "account": { "id": 5000 }, "type": "DEBIT",  "amount": 12000.00 },
+    { "account": { "id": 2000 }, "type": "CREDIT", "amount": 12000.00 }
+  ]
+}</code></pre>
+
+    <!-- ═════════════════════════ 9. DEPLOYMENT ═════════════════════════ -->
+    <div class="page-break"></div>
+    <h1>9. Deployment &amp; Execution Instructions</h1>
+
+    <h2>9.1 Prerequisites</h2>
+    <ul>
+      <li>Java JDK 17+ installed</li>
+      <li>Node.js 18+ and npm installed</li>
+      <li>PostgreSQL installed and running on port 5432</li>
+      <li>A database named <code>ledger_db</code> created in PostgreSQL</li>
+    </ul>
+
+    <h2>9.2 Start the Backend Server</h2>
+    <pre><code>cd D:\Projects\financial-ledger-system\backend-server
+
+D:\Projects\financial-ledger-system\apache-maven-3.9.6\bin\mvn.cmd ^
+  spring-boot:run ^
+  -Dspring-boot.run.arguments=--spring.config.location=file:../database-server/application.properties</code></pre>
+    <p>The backend will start on <code>http://localhost:8080</code>.</p>
+
+    <h2>9.3 Start the Frontend Client</h2>
+    <pre><code>cd D:\Projects\financial-ledger-system\frontend-client
+
+npm run dev</code></pre>
+    <p>The frontend will start on <code>http://localhost:5173</code>.</p>
+
+    <h2>9.4 Database Configuration</h2>
+    <p>Connection settings are in <code>database-server/application.properties</code>:</p>
+    <pre><code>spring.datasource.url=jdbc:postgresql://localhost:5432/ledger_db
+spring.datasource.username=postgres
+spring.datasource.password=2006
+spring.jpa.hibernate.ddl-auto=update</code></pre>
+
+    <!-- ═════════════════════════ 10. TESTING ═════════════════════════ -->
+    <div class="page-break"></div>
+    <h1>10. Testing &amp; Validation Results</h1>
+
+    <table>
+      <thead><tr><th>Test</th><th>Result</th></tr></thead>
+      <tbody>
+        <tr><td>Maven <code>clean compile</code></td><td><span class="badge badge-success">✅ PASS</span> — 19 source files compiled</td></tr>
+        <tr><td>Vite <code>npm run build</code></td><td><span class="badge badge-success">✅ PASS</span> — 36 modules, built in 512ms</td></tr>
+        <tr><td>Backend Server Startup</td><td><span class="badge badge-success">✅ PASS</span> — Connected to PostgreSQL, schema created</td></tr>
+        <tr><td>Frontend Dev Server</td><td><span class="badge badge-success">✅ PASS</span> — Vite running on port 5173</td></tr>
+        <tr><td>GL Code API Response</td><td><span class="badge badge-success">✅ PASS</span> — Accounts returned with GL codes (1000, 1200, 2000, 4000, 5000, 5100)</td></tr>
+        <tr><td>Balanced Transaction POST</td><td><span class="badge badge-success">✅ PASS</span> — Transaction created with equal debits and credits</td></tr>
+        <tr><td>Unbalanced Transaction Rejection</td><td><span class="badge badge-success">✅ PASS</span> — HTTP 400 returned with difference amount</td></tr>
+        <tr><td>Financial Year Rejection</td><td><span class="badge badge-success">✅ PASS</span> — Out-of-FY transactions blocked</td></tr>
+        <tr><td>Trial Balance Verification</td><td><span class="badge badge-success">✅ PASS</span> — Total Debits = Total Credits</td></tr>
+        <tr><td>Balance Sheet Equation</td><td><span class="badge badge-success">✅ PASS</span> — Assets = Liabilities + Equity + Net Profit</td></tr>
+        <tr><td>Form Auto-Population</td><td><span class="badge badge-success">✅ PASS</span> — Date, accounts, and templates pre-filled correctly</td></tr>
+        <tr><td>H2 to PostgreSQL Migration</td><td><span class="badge badge-success">✅ PASS</span> — All historical data migrated with GL code remapping</td></tr>
+        <tr><td>pgAdmin Data View</td><td><span class="badge badge-success">✅ PASS</span> — full_ledger_view displays all data with GL codes</td></tr>
+      </tbody>
+    </table>
+
+    <!-- ═════════════════════════ 11. CONCLUSION ═════════════════════════ -->
+    <div class="page-break"></div>
+    <h1>11. Conclusion &amp; Future Scope</h1>
+
+    <h2>11.1 Conclusion</h2>
+    <p>
+      The <strong>Enterprise Double-Entry Financial Ledger System</strong> has been successfully designed, implemented, 
+      and validated as a full-stack web application. It enforces the fundamental principles of double-entry 
+      bookkeeping with ACID-compliant PostgreSQL persistence, produces standard financial reports (Trial Balance, 
+      Profit &amp; Loss, Balance Sheet), and provides an intelligent, modern user interface that dramatically 
+      reduces data-entry effort through Quick Templates, keyword-based auto-detection, and transaction cloning.
+    </p>
+    <p>
+      The system adheres to Indian accounting standards (Ind AS 8) for immutability and supports the Indian 
+      Financial Year calendar. General Ledger codes provide professional chart-of-accounts identification 
+      consistent with enterprise ERP systems.
+    </p>
+
+    <h2>11.2 Future Scope</h2>
+    <ul>
+      <li><strong>Multi-User Authentication:</strong> Add Spring Security with JWT-based login and role-based access control (Admin, Accountant, Auditor).</li>
+      <li><strong>Multi-Currency Support:</strong> Extend the system to handle transactions in multiple currencies with real-time exchange rate conversion.</li>
+      <li><strong>PDF Report Export:</strong> Generate downloadable PDF versions of Trial Balance, P&amp;L, and Balance Sheet reports.</li>
+      <li><strong>Audit Log Trail:</strong> Maintain a separate immutable audit log recording all user actions with timestamps and IP addresses.</li>
+      <li><strong>GST Integration:</strong> Add Indian Goods &amp; Services Tax calculation and GSTR return preparation.</li>
+      <li><strong>Cloud Deployment:</strong> Deploy the application on AWS/GCP with managed PostgreSQL (RDS/Cloud SQL).</li>
+      <li><strong>Data Visualization:</strong> Add interactive charts and graphs for revenue trends, expense breakdowns, and cash flow analysis.</li>
+      <li><strong>Recurring Transactions:</strong> Support automatic scheduling of periodic entries (monthly rent, salaries, etc.).</li>
+    </ul>
+
+    <div class="success-box">
+      <strong>Project Status:</strong> All planned features have been implemented, tested, and validated successfully. 
+      The system is fully operational and ready for production use.
+    </div>
+
+    <!-- ─── Footer ─── -->
+    <div class="report-footer">
+      Enterprise Double-Entry Financial Ledger System — Project Report — June 2026<br>
+      Built with Spring Boot 3.3 · PostgreSQL · React (Vite) · Java 17
+    </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,39 @@
+# Dependencies & Local Tooling
+apache-maven-3.9.6/
+node_modules/
+**/node_modules/
+
+# Build Outputs
+dist/
+**/dist/
+target/
+**/target/
+bin/
+**/bin/
+*.jar
+*.war
+
+# Environment & Local Secrets
+.env
+.env.local
+.env.*.local
+
+# IDE & Editor Files
+.vscode/
+.idea/
+.settings/
+**/.settings/
+.project
+**/.project
+.classpath
+**/.classpath
+*.iml
+
+# OS & Database Local Runtime Files
+.DS_Store
+Thumbs.db
+*.log
+*.trace.db
+*.mv.db
+database-server/data/
+backend-server/data/

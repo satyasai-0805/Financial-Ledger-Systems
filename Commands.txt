@@ -1,0 +1,20 @@
+FOR THE BACKEND:::::::::::::::::::::::::::
+
+FIRST RUN:
+cd D:\Projects\financial-ledger-system\backend-server
+SECOND RUN:
+D:\Projects\financial-ledger-system\apache-maven-3.9.6\bin\mvn.cmd spring-boot:run -Dspring-boot.run.arguments=--spring.config.location=file:../database-server/application.properties
+
+
+FOR THE FRONTEND:::::::::::::::::::::::::::::::
+
+FIRST RUN:
+cd D:\Projects\financial-ledger-system\frontend-client
+SECOND RUN:
+npm run dev
+
+
+FOR THE LOCAL AI ASSISTANT (OLLAMA):::::::::::::
+
+RUN:
+ollama serve

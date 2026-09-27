@@ -1,0 +1,10 @@
+ollama serve
+
+
+cd d:\Projects\financial-ledger-system\backend-server
+..\apache-maven-3.9.6\bin\mvn.cmd spring-boot:run "-Dspring-boot.run.arguments=--spring.config.location=file:../database-server/application.properties"
+
+
+
+cd d:\Projects\financial-ledger-system\frontend-client
+npm run dev
