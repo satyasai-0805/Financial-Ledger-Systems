@@ -30,10 +30,12 @@ const Login = () => {
       login(token);
       navigate('/');
     } catch (error) {
+      console.error('Login request failed:', error);
       if (error.response && error.response.status === 401) {
         setErrorMsg('Invalid credentials. Check your username & password.');
       } else {
-        setErrorMsg('Server connection error. Please verify backend state.');
+        const targetUrl = api.defaults.baseURL || 'http://localhost:8080/api';
+        setErrorMsg(`Server connection error. Attempted to reach: ${targetUrl}. Please check backend status.`);
       }
     } finally {
       setLoading(false);
