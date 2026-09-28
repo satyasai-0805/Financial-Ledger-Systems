@@ -1,7 +1,13 @@
 import axios from 'axios';
 
+// Clean and normalize baseURL to guarantee it always points to /api
+let rawBaseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api').trim().replace(/\/+$/, '');
+if (!rawBaseUrl.endsWith('/api')) {
+  rawBaseUrl += '/api';
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api', // Configurable backend base URL
+  baseURL: rawBaseUrl,
 });
 
 // Request interceptor for adding the token
