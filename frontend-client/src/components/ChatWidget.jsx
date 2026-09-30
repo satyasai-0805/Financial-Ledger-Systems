@@ -94,10 +94,10 @@ const ChatWidget = ({ onTransactionCreated }) => {
   };
 
   const quickSuggestions = [
-    "Paid 5000 for office rent from cash",
-    "Received 12000 cash for consulting services",
-    "Bought stationery for 800 with cash",
-    "Billed Acme Corp 8000 for web design"
+    "Add transaction log: Paid 5000 for office rent from cash",
+    "Log transaction: Received 12000 cash for consulting",
+    "Show transaction logs",
+    "Bought stationery for 800 with cash"
   ];
 
   const renderMessageContent = (text, isTransaction) => {

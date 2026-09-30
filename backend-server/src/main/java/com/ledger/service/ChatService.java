@@ -275,13 +275,22 @@ public class ChatService {
             }
         }
 
-        // 7. Recent Transactions
-        if (query.contains("transaction") || query.contains("history") || query.contains("recent") || query.contains("entry") || query.contains("entries") || query.contains("log")) {
+        // 7. Recent Transactions / Transaction Ledger Logs
+        if (query.contains("transaction log") || query.contains("logs") || query.contains("transaction") || query.contains("history") || query.contains("recent") || query.contains("entry") || query.contains("entries") || query.contains("log")) {
             Page<Transaction> txPage = ledgerService.getTransactions(PageRequest.of(0, 5, Sort.by("timestamp").descending()));
-            StringBuilder sb = new StringBuilder("📝 **Latest Journalized Transactions:**\n\n");
+            StringBuilder sb = new StringBuilder("📁 **Recent Transaction Ledger Logs:**\n\n");
             for (Transaction tx : txPage.getContent()) {
-                sb.append(String.format("- **TX #%d** [%s]: %s\n", tx.getId(), tx.getTimestamp().toString().substring(0, 16), tx.getDescription()));
+                sb.append(String.format("📋 **Log #TX-%d** — *%s*\n", tx.getId(), tx.getDescription()));
+                sb.append(String.format("   • **Audit Time:** %s\n", tx.getTimestamp().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))));
+                if (tx.getEntries() != null && !tx.getEntries().isEmpty()) {
+                    for (JournalEntry e : tx.getEntries()) {
+                        sb.append(String.format("   • **%s:** %s (%s) — ₹%,.2f\n",
+                                e.getType(), e.getAccount().getName(), e.getAccount().getType(), e.getAmount()));
+                    }
+                }
+                sb.append("\n");
             }
+            sb.append("💡 *You can add a new transaction log anytime by saying, e.g.: 'Add transaction log: Paid 5000 for office rent from cash'*");
             return ChatResponse.success(sb.toString());
         }
 
@@ -382,8 +391,9 @@ public class ChatService {
 
         // Avoid pure inquiry questions
         if (lower.startsWith("how much") || lower.startsWith("what did") || lower.startsWith("what is")
-                || lower.startsWith("show ") || lower.startsWith("list ") || lower.startsWith("why ")
-                || lower.startsWith("explain ") || lower.endsWith("?")) {
+                || lower.startsWith("show ") || lower.startsWith("view ") || lower.startsWith("list ")
+                || lower.startsWith("why ") || lower.startsWith("explain ") || lower.startsWith("see ")
+                || lower.endsWith("?")) {
             return false;
         }
 
@@ -392,8 +402,11 @@ public class ChatService {
                 || lower.contains("bought") || lower.contains("buy") || lower.contains("purchase")
                 || lower.contains("received") || lower.contains("receive")
                 || lower.contains("billed") || lower.contains("bill") || lower.contains("invoiced") || lower.contains("invoice")
+                || lower.contains("log") || lower.contains("logs")
                 || lower.contains("add transaction") || lower.contains("record transaction")
                 || lower.contains("create transaction") || lower.contains("post transaction")
+                || lower.contains("add log") || lower.contains("add transaction log") || lower.contains("add transaction logs")
+                || lower.contains("log transaction") || lower.contains("record log") || lower.contains("post log")
                 || lower.contains("add entry") || lower.contains("record entry")
                 || (lower.contains("debit") && lower.contains("credit"));
 
@@ -490,6 +503,40 @@ public class ChatService {
     }
 
     private ChatResponse tryProcessNaturalLanguageTransaction(String userMessage) {
+        // Strip common prefix wrappers like "add transaction log:", "log:", "add log:"
+        String cleanMsg = userMessage.replaceAll("(?i)^(please\\s+)?(add\\s+)?(transaction\\s+)?logs?\\s*[:,-]?\\s*", "").trim();
+
+        // Check if message has multiple transaction lines separated by newline or semicolon
+        String[] lines = cleanMsg.split("[;\n]+");
+        List<String> validTxLines = new ArrayList<>();
+        for (String line : lines) {
+            String trimmed = line.trim();
+            if (trimmed.length() > 5 && extractAmount(trimmed) != null) {
+                validTxLines.add(trimmed);
+            }
+        }
+
+        if (validTxLines.size() > 1) {
+            // Batch Transaction Log Processing
+            StringBuilder batchReply = new StringBuilder();
+            batchReply.append(String.format("✅ **Batch Processed: Successfully Appended %d Transaction Logs!**\n\n", validTxLines.size()));
+            Long lastId = null;
+
+            for (int i = 0; i < validTxLines.size(); i++) {
+                ChatResponse single = processSingleTransaction(validTxLines.get(i));
+                if (single != null && single.isTransactionCreated()) {
+                    lastId = single.getTransactionId();
+                    batchReply.append(String.format("📄 **Log Entry %d:**\n%s\n\n---\n\n", i + 1, single.getReply()));
+                }
+            }
+            batchReply.append("📁 *All logs have been permanently committed to the **Transaction Ledger Logs** table.*");
+            return ChatResponse.transactionSuccess(batchReply.toString(), lastId);
+        }
+
+        return processSingleTransaction(cleanMsg);
+    }
+
+    private ChatResponse processSingleTransaction(String userMessage) {
         BigDecimal amount = extractAmount(userMessage);
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             return null;
@@ -554,10 +601,10 @@ public class ChatService {
                     "Debited Cash to increase liquid assets, credited Revenue to recognize income.");
         }
 
-        // 7. General Expense / Cash Purchases (e.g. "Paid 5000 for office rent from cash", "Bought stationery for 800 with cash")
+        // 7. General Expense / Cash Purchases / Log entries (e.g. "Paid 5000 for office rent from cash", "Log 800 for stationery with cash")
         if (lower.contains("paid") || lower.contains("pay") || lower.contains("spent") || lower.contains("spend")
                 || lower.contains("bought") || lower.contains("buy") || lower.contains("purchase") || lower.contains("purchased")
-                || lower.contains("add transaction") || lower.contains("record transaction") || lower.contains("create transaction")) {
+                || lower.contains("log") || lower.contains("add transaction") || lower.contains("record transaction") || lower.contains("create transaction")) {
             String item = extractExpenseItem(userMessage);
             String expenseAccount = resolveExpenseAccount(lower, item);
             String title = !item.isEmpty()
@@ -581,7 +628,7 @@ public class ChatService {
                 String jsonStr = aiResponse.substring(start, end + 1);
                 JsonNode node = objectMapper.readTree(jsonStr);
                 if ("CREATE_TRANSACTION".equalsIgnoreCase(node.path("action").asText())) {
-                    String desc = node.path("description").asText("Automated Financial Transaction");
+                    String desc = node.path("description").asText("Automated Financial Transaction Log");
                     BigDecimal amt = new BigDecimal(node.path("amount").asText("0"));
                     String debitAcc = node.path("debitAccount").asText("Rent Expense");
                     String debitType = node.path("debitAccountType").asText("EXPENSE");
@@ -627,20 +674,20 @@ public class ChatService {
                 : "";
 
         String reply = String.format(
-                "✅ **Transaction Successfully Recorded & Posted!**\n\n" +
-                "- **Transaction ID:** #%d\n" +
+                "✅ **Transaction Log Successfully Appended!**\n\n" +
+                "- **Log ID:** #TX-%d\n" +
                 "- **Auto-Generated Title:** *%s*\n" +
-                "- **Timestamp:** %s\n" +
-                "- **Journal Entries:**\n" +
+                "- **Audit Timestamp:** %s\n" +
+                "- **Journal Legs (Double-Entry Log):**\n" +
                 "  • **DEBIT:** %s (%s) — ₹%,.2f\n" +
                 "  • **CREDIT:** %s (%s) — ₹%,.2f\n" +
-                "- **Double-Entry Status:** ⚖️ Perfectly Balanced (₹%,.2f = ₹%,.2f)\n" +
-                "- **Current Cash Position:** ₹%,.2f\n" +
+                "- **Audit Status:** ⚖️ COMMITTED // BALANCED (₹%,.2f = ₹%,.2f)\n" +
+                "- **Updated Cash Position:** ₹%,.2f\n" +
                 "%s\n" +
-                "*The General Ledger, Trial Balance, and Financial Statements have been updated automatically.*",
+                "📁 *This record has been appended to the **Transaction Ledger Logs** table and reflected across your Trial Balance & Statements.*",
                 saved.getId(),
                 saved.getDescription(),
-                saved.getTimestamp().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
+                saved.getTimestamp().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
                 debitAccount.getName(), debitAccount.getType(), amount,
                 creditAccount.getName(), creditAccount.getType(), amount,
                 amount, amount,

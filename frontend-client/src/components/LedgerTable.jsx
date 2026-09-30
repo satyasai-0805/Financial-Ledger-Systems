@@ -34,6 +34,15 @@ export default function LedgerTable({ refreshTrigger, onCloneTransaction }) {
     fetchTransactions();
   }, [page, refreshTrigger]);
 
+  useEffect(() => {
+    const handleTxCreated = () => {
+      setPage(0);
+      fetchTransactions();
+    };
+    window.addEventListener('ledger-transaction-created', handleTxCreated);
+    return () => window.removeEventListener('ledger-transaction-created', handleTxCreated);
+  }, []);
+
   const handlePrevPage = () => {
     if (page > 0) {
       setPage(prev => prev - 1);
