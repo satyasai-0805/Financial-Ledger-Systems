@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import LedgerTable from './components/LedgerTable';
 import TransactionForm from './components/TransactionForm';
@@ -19,6 +19,12 @@ function Dashboard() {
   const handleTransactionSuccess = () => {
     setRefreshTrigger(prev => prev + 1);
   };
+
+  useEffect(() => {
+    const handleTxEvent = () => setRefreshTrigger(prev => prev + 1);
+    window.addEventListener('ledger-transaction-created', handleTxEvent);
+    return () => window.removeEventListener('ledger-transaction-created', handleTxEvent);
+  }, []);
 
   return (
     <>
@@ -108,7 +114,7 @@ function Dashboard() {
         )}
 
       </div>
-      <ChatWidget />
+      <ChatWidget onTransactionCreated={handleTransactionSuccess} />
     </>
   );
 }

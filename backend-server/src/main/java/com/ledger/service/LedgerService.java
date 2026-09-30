@@ -50,10 +50,42 @@ public class LedgerService {
         if (account.getName() == null || account.getName().trim().isEmpty()) {
             throw new InvalidTransactionException("Account name cannot be empty");
         }
-        if (accountRepository.findByName(account.getName()).isPresent()) {
+        if (accountRepository.findByNameIgnoreCase(account.getName().trim()).isPresent()) {
             throw new InvalidTransactionException("Account with name '" + account.getName() + "' already exists");
         }
+        if (account.getId() == null) {
+            account.setId(generateNextAccountId(account.getType()));
+        }
         return accountRepository.save(account);
+    }
+
+    public Account findOrCreateAccount(String accountName, String defaultType) {
+        if (accountName == null || accountName.trim().isEmpty()) {
+            throw new InvalidTransactionException("Account name cannot be empty");
+        }
+        String cleanName = accountName.trim();
+        return accountRepository.findByNameIgnoreCase(cleanName)
+                .orElseGet(() -> {
+                    String type = (defaultType != null && !defaultType.trim().isEmpty()) ? defaultType.toUpperCase() : "EXPENSE";
+                    Long newId = generateNextAccountId(type);
+                    Account newAcc = new Account(newId, cleanName, type);
+                    return accountRepository.save(newAcc);
+                });
+    }
+
+    private Long generateNextAccountId(String type) {
+        long base = 5000L;
+        if ("ASSET".equalsIgnoreCase(type)) base = 1000L;
+        else if ("LIABILITY".equalsIgnoreCase(type)) base = 2000L;
+        else if ("EQUITY".equalsIgnoreCase(type)) base = 3000L;
+        else if ("REVENUE".equalsIgnoreCase(type)) base = 4000L;
+        else if ("EXPENSE".equalsIgnoreCase(type)) base = 5000L;
+
+        long candidate = base + 100L;
+        while (accountRepository.existsById(candidate)) {
+            candidate += 10L;
+        }
+        return candidate;
     }
 
     public Transaction createTransaction(Transaction transaction) {
@@ -80,7 +112,8 @@ public class LedgerService {
                 account = accountRepository.findById(entry.getAccount().getId())
                         .orElseThrow(() -> new InvalidTransactionException("Account not found with ID: " + entry.getAccount().getId()));
             } else {
-                account = accountRepository.findByName(entry.getAccount().getName())
+                String accName = entry.getAccount().getName() != null ? entry.getAccount().getName().trim() : "";
+                account = accountRepository.findByNameIgnoreCase(accName)
                         .orElseThrow(() -> new InvalidTransactionException("Account not found with name: " + entry.getAccount().getName()));
             }
             entry.setAccount(account);

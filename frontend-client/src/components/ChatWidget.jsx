@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import api from '../api';
 
-const ChatWidget = () => {
+const ChatWidget = ({ onTransactionCreated }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
       id: 1,
       sender: 'ai',
-      text: "👋 Hi! I'm your Ledger AI Assistant. Ask me general questions or anything about your financial data (e.g. 'what is my total expense?', 'explain trial balance').",
+      text: "👋 Hi! I'm your Ledger AI Assistant. You can ask questions about your financial books or **record new transactions directly** in chat!\n\nTry saying: *\"Paid 5000 for office rent from cash\"* or *\"Received 12000 cash for consulting services\"*.",
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -25,9 +25,10 @@ const ChatWidget = () => {
     }
   }, [messages, isOpen]);
 
-  const handleSend = async (e) => {
+  const handleSend = async (e, textOverride = null) => {
     if (e) e.preventDefault();
-    const trimmed = inputMsg.trim();
+    const messageToSend = textOverride || inputMsg;
+    const trimmed = messageToSend.trim();
     if (!trimmed || isLoading) return;
 
     const userMessage = {
@@ -38,16 +39,26 @@ const ChatWidget = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setInputMsg('');
+    if (!textOverride) setInputMsg('');
     setIsLoading(true);
 
     try {
       const response = await api.post('/chat/ask', { message: trimmed });
-      const { reply, error } = response.data;
+      const { reply, error, transactionCreated, transactionId } = response.data;
 
       let aiText = reply;
       if (error) {
         aiText = `⚠️ ${error}`;
+      }
+
+      // If a transaction was recorded and posted by the AI
+      if (transactionCreated) {
+        window.dispatchEvent(new CustomEvent('ledger-transaction-created', {
+          detail: { transactionId }
+        }));
+        if (onTransactionCreated) {
+          onTransactionCreated();
+        }
       }
 
       setMessages(prev => [
@@ -56,6 +67,7 @@ const ChatWidget = () => {
           id: Date.now() + 1,
           sender: 'ai',
           text: aiText || "I couldn't process your request. Please try again.",
+          isTransaction: Boolean(transactionCreated),
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
@@ -79,6 +91,64 @@ const ChatWidget = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const quickSuggestions = [
+    "Paid 5000 for office rent from cash",
+    "Received 12000 cash for consulting services",
+    "Bought stationery for 800 with cash",
+    "Billed Acme Corp 8000 for web design"
+  ];
+
+  const renderMessageContent = (text, isTransaction) => {
+    if (!text) return null;
+    return (
+      <div className={`neon-chat-msg-text ${isTransaction ? 'tx-card-highlight' : ''}`}>
+        {isTransaction && (
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.35rem',
+            background: 'rgba(16, 185, 129, 0.15)',
+            border: '1px solid rgba(16, 185, 129, 0.3)',
+            color: '#10b981',
+            fontSize: '0.7rem',
+            fontWeight: '700',
+            padding: '2px 8px',
+            borderRadius: '12px',
+            marginBottom: '0.5rem',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em'
+          }}>
+            <span>●</span> Live Ledger Recorded
+          </div>
+        )}
+        {text.split('\n').map((line, idx) => {
+          const isBullet = line.trim().startsWith('-') || line.trim().startsWith('•');
+          const isCheck = line.includes('✅');
+          const parts = line.split(/(\*\*.*?\*\*|\*.*?\*)/g);
+
+          return (
+            <div key={idx} style={{ 
+              marginBottom: line.trim() === '' ? '0.4rem' : '0.15rem',
+              paddingLeft: isBullet ? '0.4rem' : '0',
+              fontWeight: isCheck ? '600' : 'normal',
+              color: isCheck ? '#10b981' : 'inherit'
+            }}>
+              {parts.map((part, pIdx) => {
+                if (part.startsWith('**') && part.endsWith('**')) {
+                  return <strong key={pIdx}>{part.slice(2, -2)}</strong>;
+                }
+                if (part.startsWith('*') && part.endsWith('*')) {
+                  return <em key={pIdx}>{part.slice(1, -1)}</em>;
+                }
+                return part;
+              })}
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
@@ -124,7 +194,7 @@ const ChatWidget = () => {
                 className={`neon-chat-msg-row ${msg.sender === 'user' ? 'user-row' : 'ai-row'}`}
               >
                 <div className={`neon-chat-msg-bubble ${msg.sender === 'user' ? 'neon-msg-user' : 'neon-msg-ai'}`}>
-                  <div className="neon-chat-msg-text">{msg.text}</div>
+                  {renderMessageContent(msg.text, msg.isTransaction)}
                   <div className="neon-chat-msg-time">{msg.time}</div>
                 </div>
               </div>
@@ -143,12 +213,47 @@ const ChatWidget = () => {
             <div ref={messagesEndRef} />
           </div>
 
+          {/* Quick Prompt Chips */}
+          <div style={{
+            display: 'flex',
+            gap: '0.4rem',
+            overflowX: 'auto',
+            padding: '6px 12px',
+            background: 'var(--bg-surface, #121826)',
+            borderTop: '1px solid var(--border-color, #1e293b)',
+            scrollbarWidth: 'none'
+          }}>
+            {quickSuggestions.map((prompt, pIdx) => (
+              <button
+                key={pIdx}
+                type="button"
+                onClick={() => handleSend(null, prompt)}
+                disabled={isLoading}
+                style={{
+                  fontSize: '0.72rem',
+                  whiteSpace: 'nowrap',
+                  padding: '4px 10px',
+                  borderRadius: '12px',
+                  background: 'rgba(56, 189, 248, 0.08)',
+                  border: '1px solid rgba(56, 189, 248, 0.25)',
+                  color: '#38bdf8',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(56, 189, 248, 0.2)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(56, 189, 248, 0.08)'}
+              >
+                ⚡ {prompt}
+              </button>
+            ))}
+          </div>
+
           {/* Input Form */}
           <form className="neon-chat-input-area" onSubmit={handleSend}>
             <input 
               type="text"
               className="neon-chat-input"
-              placeholder="Ask AI about ledger data or general topics..."
+              placeholder="e.g. Paid 5000 for office rent from cash..."
               value={inputMsg}
               onChange={(e) => setInputMsg(e.target.value)}
               disabled={isLoading}
