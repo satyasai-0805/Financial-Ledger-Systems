@@ -1,16 +1,28 @@
 import React, { useState, useRef, useEffect } from 'react';
 import api from '../api';
+import { useAuth } from './AuthProvider';
 
 const ChatWidget = ({ onTransactionCreated }) => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ROLE_ADMIN' || user?.role === 'ADMIN';
+
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      sender: 'ai',
-      text: "👋 Hi! I'm your Ledger AI Assistant. You can ask questions about your financial books or **record new transactions directly** in chat!\n\nTry saying: *\"Paid 5000 for office rent from cash\"* or *\"Received 12000 cash for consulting services\"*.",
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    }
-  ]);
+  const [messages, setMessages] = useState([]);
+
+  useEffect(() => {
+    const welcomeText = isAdmin
+      ? "👋 Hi! I'm your Ledger AI Assistant. You have **Administrator** privileges to query financial books or **record new transactions directly** in chat!\n\nTry saying: *\"Paid 5000 for office rent from cash\"* or *\"Received 12000 cash for consulting services\"*."
+      : "👋 Hi! I'm your Ledger AI Assistant. You are logged in with **Read-Only (Viewer)** access.\n\nYou can ask questions about your financial books, check account balances, or view ledger audit logs anytime!";
+
+    setMessages([
+      {
+        id: 1,
+        sender: 'ai',
+        text: welcomeText,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }
+    ]);
+  }, [isAdmin]);
   const [inputMsg, setInputMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
@@ -93,12 +105,19 @@ const ChatWidget = ({ onTransactionCreated }) => {
     }
   };
 
-  const quickSuggestions = [
-    "Add transaction log: Paid 5000 for office rent from cash",
-    "Log transaction: Received 12000 cash for consulting",
-    "Show transaction logs",
-    "Bought stationery for 800 with cash"
-  ];
+  const quickSuggestions = isAdmin
+    ? [
+        "Add transaction log: Paid 5000 for office rent from cash",
+        "Log transaction: Received 12000 cash for consulting",
+        "Show transaction logs",
+        "Bought stationery for 800 with cash"
+      ]
+    : [
+        "Show transaction logs",
+        "What is our current Net Profit?",
+        "Is the Trial Balance sheet balanced?",
+        "What are our total Assets and Cash balance?"
+      ];
 
   const renderMessageContent = (text, isTransaction) => {
     if (!text) return null;
@@ -253,7 +272,7 @@ const ChatWidget = ({ onTransactionCreated }) => {
             <input 
               type="text"
               className="neon-chat-input"
-              placeholder="e.g. Paid 5000 for office rent from cash..."
+              placeholder={isAdmin ? "e.g. Paid 5000 for office rent from cash..." : "Ask questions about balances, trial balance, profit & loss..."}
               value={inputMsg}
               onChange={(e) => setInputMsg(e.target.value)}
               disabled={isLoading}

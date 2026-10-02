@@ -26,13 +26,16 @@ public class ChatController {
     @PostMapping("/ask")
     public ResponseEntity<ChatResponse> askChatbot(@RequestBody ChatRequest request, Principal principal, Authentication authentication) {
         String username = "anonymous";
-        if (principal != null) {
-            username = principal.getName();
-        } else if (authentication != null) {
+        boolean isAdmin = false;
+        if (authentication != null) {
             username = authentication.getName();
+            isAdmin = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        } else if (principal != null) {
+            username = principal.getName();
         }
 
-        ChatResponse response = chatService.processChatRequest(username, request.getMessage());
+        ChatResponse response = chatService.processChatRequest(username, isAdmin, request.getMessage());
         
         if (response.getError() != null && response.getError().contains("Rate limit")) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(response);

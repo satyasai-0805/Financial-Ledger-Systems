@@ -70,6 +70,10 @@ public class ChatService {
     }
 
     public ChatResponse processChatRequest(String username, String userMessage) {
+        return processChatRequest(username, true, userMessage);
+    }
+
+    public ChatResponse processChatRequest(String username, boolean isAdmin, String userMessage) {
         if (userMessage == null || userMessage.trim().isEmpty()) {
             return ChatResponse.error("Message cannot be empty.");
         }
@@ -81,6 +85,9 @@ public class ChatService {
 
         // 2. Direct Natural Language Transaction Intent Check (Instant zero-latency execution)
         if (isTransactionCreationIntent(userMessage)) {
+            if (!isAdmin) {
+                return ChatResponse.error("🔒 Permission Denied: Your account has read-only (VIEWER) permissions. Only administrators can journalize or post new transactions into the ledger.");
+            }
             try {
                 ChatResponse directTx = tryProcessNaturalLanguageTransaction(userMessage);
                 if (directTx != null) {
@@ -112,6 +119,9 @@ public class ChatService {
                 if (cloudResponse != null && !cloudResponse.trim().isEmpty()) {
                     ChatResponse jsonTx = tryParseJsonTransactionFromAi(cloudResponse);
                     if (jsonTx != null) {
+                        if (!isAdmin) {
+                            return ChatResponse.error("🔒 Permission Denied: Your account has read-only (VIEWER) permissions. Only administrators can journalize or post new transactions into the ledger.");
+                        }
                         return jsonTx;
                     }
                     return ChatResponse.success(cloudResponse);
@@ -127,6 +137,9 @@ public class ChatService {
             if (ollamaResponse != null && !ollamaResponse.trim().isEmpty()) {
                 ChatResponse jsonTx = tryParseJsonTransactionFromAi(ollamaResponse);
                 if (jsonTx != null) {
+                    if (!isAdmin) {
+                        return ChatResponse.error("🔒 Permission Denied: Your account has read-only (VIEWER) permissions. Only administrators can journalize or post new transactions into the ledger.");
+                    }
                     return jsonTx;
                 }
                 return ChatResponse.success(ollamaResponse);

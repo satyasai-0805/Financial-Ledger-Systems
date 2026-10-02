@@ -3,6 +3,7 @@ package com.ledger.controller;
 import com.ledger.dto.AuthRequest;
 import com.ledger.dto.AuthResponse;
 import com.ledger.dto.RegisterRequest;
+import com.ledger.model.Role;
 import com.ledger.model.User;
 import com.ledger.repository.UserRepository;
 import com.ledger.security.JwtUtil;
@@ -47,7 +48,8 @@ public class AuthController {
         User user = new User();
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(request.getRole());
+        // All public registrations default strictly to read-only ROLE_VIEWER
+        user.setRole(Role.ROLE_VIEWER);
         userRepository.save(user);
 
         Map<String, String> success = new HashMap<>();

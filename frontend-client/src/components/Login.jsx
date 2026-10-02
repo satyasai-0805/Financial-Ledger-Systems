@@ -170,24 +170,20 @@ const Login = () => {
 
         {/* Demo Preset Chips */}
         <div className="neon-demo-section">
-          <div className="neon-demo-header">⚡ QUICK DEMO LOGINS</div>
+          <div className="neon-demo-header">⚡ PUBLIC DEMO ACCESS</div>
           <div className="neon-demo-chips">
             <button 
               type="button" 
               className="neon-demo-chip"
-              onClick={() => fillQuickDemo('admin', 'admin')}
-            >
-              <span className="neon-demo-role">🔑 Admin Role</span>
-              <span className="neon-demo-creds">admin / admin</span>
-            </button>
-            <button 
-              type="button" 
-              className="neon-demo-chip"
               onClick={() => fillQuickDemo('viewer', 'viewer')}
+              style={{ width: '100%' }}
             >
-              <span className="neon-demo-role">👁️ Viewer Role</span>
-              <span className="neon-demo-creds">viewer / viewer</span>
+              <span className="neon-demo-role">👁️ Guest / Read-Only Demo</span>
+              <span className="neon-demo-creds">Click to fill: viewer / viewer</span>
             </button>
+          </div>
+          <div style={{ fontSize: '0.72rem', color: 'rgba(255, 255, 255, 0.45)', textAlign: 'center', marginTop: '0.5rem' }}>
+            🔒 Administrator portal requires private authorized credentials.
           </div>
         </div>
 

@@ -9,6 +9,7 @@ import com.ledger.repository.AccountRepository;
 import com.ledger.repository.UserRepository;
 import com.ledger.service.LedgerService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Component
 @Order(2)
@@ -25,6 +27,12 @@ public class DataSeeder implements CommandLineRunner {
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${app.admin.username:admin}")
+    private String configuredAdminUsername;
+
+    @Value("${app.admin.password:}")
+    private String configuredAdminPassword;
 
     @Autowired
     public DataSeeder(LedgerService ledgerService, AccountRepository accountRepository,
@@ -96,25 +104,42 @@ public class DataSeeder implements CommandLineRunner {
             System.out.println("Database already contains accounts. Skipping ledger seeding step.");
         }
 
-        // Seed users if empty
-        if (userRepository.count() == 0) {
-            System.out.println("No users found. Seeding default ADMIN and VIEWER accounts...");
-            
+        // Seed or synchronize user accounts
+        String adminUser = (configuredAdminUsername != null && !configuredAdminUsername.trim().isEmpty())
+                ? configuredAdminUsername.trim()
+                : "admin";
+        String adminPass = (configuredAdminPassword != null && !configuredAdminPassword.trim().isEmpty())
+                ? configuredAdminPassword.trim()
+                : "admin";
+
+        Optional<User> existingAdmin = userRepository.findByUsername(adminUser);
+        if (existingAdmin.isPresent()) {
+            // If custom ADMIN_PASSWORD was configured via environment variable, update the existing user
+            if (configuredAdminPassword != null && !configuredAdminPassword.trim().isEmpty()) {
+                User admin = existingAdmin.get();
+                admin.setPassword(passwordEncoder.encode(adminPass));
+                admin.setRole(Role.ROLE_ADMIN);
+                userRepository.save(admin);
+                System.out.println("Admin password successfully updated from environment variable configuration.");
+            }
+        } else {
             User admin = new User();
-            admin.setUsername("admin");
-            admin.setPassword(passwordEncoder.encode("admin"));
+            admin.setUsername(adminUser);
+            admin.setPassword(passwordEncoder.encode(adminPass));
             admin.setRole(Role.ROLE_ADMIN);
             userRepository.save(admin);
+            System.out.println("Configured Admin user seeded: " + adminUser);
+        }
 
+        // Ensure default Read-Only VIEWER user exists for public demo
+        Optional<User> existingViewer = userRepository.findByUsername("viewer");
+        if (existingViewer.isEmpty()) {
             User viewer = new User();
             viewer.setUsername("viewer");
             viewer.setPassword(passwordEncoder.encode("viewer"));
             viewer.setRole(Role.ROLE_VIEWER);
             userRepository.save(viewer);
-
-            System.out.println("Default users seeded: admin/admin, viewer/viewer");
-        } else {
-            System.out.println("Database already contains users. Skipping user seeding step.");
+            System.out.println("Default read-only Viewer account seeded: viewer / viewer");
         }
     }
 }
