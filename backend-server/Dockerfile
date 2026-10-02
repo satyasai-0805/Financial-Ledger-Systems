@@ -12,6 +12,8 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
 ENV PORT=8080
-EXPOSE 8080
+EXPOSE 8080 10000
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
+
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Dserver.port=${PORT:-8080} -jar app.jar"]

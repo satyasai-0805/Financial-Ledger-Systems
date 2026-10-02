@@ -24,6 +24,11 @@ public class DatabaseMigrator implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        java.io.File h2File = new java.io.File("../database-server/data/ledgerdb.mv.db");
+        if (!h2File.exists()) {
+            return;
+        }
+
         // Check if accounts already exist in PostgreSQL database
         Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM accounts", Integer.class);
         if (count != null && count > 0) {
@@ -32,11 +37,6 @@ public class DatabaseMigrator implements CommandLineRunner {
         }
 
         System.out.println("Starting data migration from H2 to PostgreSQL...");
-        
-        java.io.File h2File = new java.io.File("../database-server/data/ledgerdb.mv.db");
-        System.out.println("Current working directory: " + System.getProperty("user.dir"));
-        System.out.println("H2 file absolute path: " + h2File.getAbsolutePath());
-        System.out.println("H2 file exists: " + h2File.exists());
 
         String h2Url = "jdbc:h2:file:../database-server/data/ledgerdb;MODE=Oracle";
         String h2User = "sa";
