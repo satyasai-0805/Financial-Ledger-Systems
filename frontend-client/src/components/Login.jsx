@@ -22,8 +22,8 @@ const Login = () => {
     
     try {
       const response = await api.post('/auth/login', {
-        username,
-        password
+        username: username.trim(),
+        password: password.trim()
       });
       
       const { token } = response.data;

@@ -23,8 +23,9 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        String cleanUsername = username != null ? username.trim() : "";
+        User user = userRepository.findByUsernameIgnoreCase(cleanUsername)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + cleanUsername));
         
         // The enum is ROLE_ADMIN, so we can just use its name directly
         String roleName = user.getRole().name();

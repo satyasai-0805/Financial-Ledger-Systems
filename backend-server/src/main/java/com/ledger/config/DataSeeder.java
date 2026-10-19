@@ -112,28 +112,31 @@ public class DataSeeder implements CommandLineRunner {
                 ? configuredAdminPassword.trim()
                 : "admin";
 
-        Optional<User> existingAdmin = userRepository.findByUsername(adminUser);
+        Optional<User> existingAdmin = userRepository.findByUsernameIgnoreCase(adminUser);
         if (existingAdmin.isPresent()) {
-            // If custom ADMIN_PASSWORD was configured via environment variable, update the existing user
-            if (configuredAdminPassword != null && !configuredAdminPassword.trim().isEmpty()) {
-                User admin = existingAdmin.get();
-                admin.setPassword(passwordEncoder.encode(adminPass));
-                admin.setRole(Role.ROLE_ADMIN);
-                userRepository.save(admin);
-                System.out.println("Admin password successfully updated from environment variable configuration.");
-            }
+            User admin = existingAdmin.get();
+            admin.setUsername(adminUser);
+            admin.setPassword(passwordEncoder.encode(adminPass));
+            admin.setRole(Role.ROLE_ADMIN);
+            userRepository.save(admin);
+            System.out.println("Admin account synchronized with password: " + (configuredAdminPassword != null && !configuredAdminPassword.trim().isEmpty() ? "[CONFIGURED SECRET]" : "default 'admin'"));
         } else {
             User admin = new User();
             admin.setUsername(adminUser);
             admin.setPassword(passwordEncoder.encode(adminPass));
             admin.setRole(Role.ROLE_ADMIN);
             userRepository.save(admin);
-            System.out.println("Configured Admin user seeded: " + adminUser);
+            System.out.println("Admin user seeded: " + adminUser);
         }
 
         // Ensure default Read-Only VIEWER user exists for public demo
-        Optional<User> existingViewer = userRepository.findByUsername("viewer");
-        if (existingViewer.isEmpty()) {
+        Optional<User> existingViewer = userRepository.findByUsernameIgnoreCase("viewer");
+        if (existingViewer.isPresent()) {
+            User viewer = existingViewer.get();
+            viewer.setPassword(passwordEncoder.encode("viewer"));
+            viewer.setRole(Role.ROLE_VIEWER);
+            userRepository.save(viewer);
+        } else {
             User viewer = new User();
             viewer.setUsername("viewer");
             viewer.setPassword(passwordEncoder.encode("viewer"));

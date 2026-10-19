@@ -59,13 +59,16 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request) {
+        String cleanUsername = request.getUsername() != null ? request.getUsername().trim() : "";
+        String cleanPassword = request.getPassword() != null ? request.getPassword().trim() : "";
+
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+                new UsernamePasswordAuthenticationToken(cleanUsername, cleanPassword)
         );
 
         if (authentication.isAuthenticated()) {
-            User user = userRepository.findByUsername(request.getUsername())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            User user = userRepository.findByUsernameIgnoreCase(cleanUsername)
+                    .orElseThrow(() -> new RuntimeException("User not found: " + cleanUsername));
             String token = jwtUtil.generateToken(user.getUsername(), user.getRole(), user.getId());
             AuthResponse response = new AuthResponse(token, user.getUsername(), user.getRole(), user.getId());
             return ResponseEntity.ok(response);
